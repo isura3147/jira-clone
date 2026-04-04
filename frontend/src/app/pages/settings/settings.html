@@ -1,0 +1,66 @@
+<div class="settings-container">
+  <div class="settings-header">
+    <h2>Account Settings</h2>
+    <p class="subtitle">Manage your profile and application preferences.</p>
+  </div>
+
+  <div class="settings-card" *ngIf="user">
+    <div class="settings-section">
+      <h3>Profile Details</h3>
+      
+      <div class="info-row">
+        <label>Username</label>
+        <div class="info-value">{{user.username}}</div>
+      </div>
+      
+      <div class="info-row">
+        <label>Email Address</label>
+        <div class="info-value">{{user.email}}</div>
+      </div>
+    </div>
+    
+    <div class="settings-section">
+      <h3>Preferences</h3>
+      <div class="preference-row">
+        <div class="pref-info">
+          <h4>Dark Appearance</h4>
+          <p>Switch between light and dark themes.</p>
+        </div>
+        <div class="pref-action">
+          <button class="btn-toggle" disabled>Coming Soon</button>
+        </div>
+      </div>
+    </div>
+    
+    <div class="settings-section">
+      <h3>Security & Password</h3>
+      <p class="subtitle" style="margin-bottom: 1.5rem;">Update your account authentication.</p>
+      
+      <form [formGroup]="pwdForm" (ngSubmit)="changePassword()" class="pwd-form">
+        <div class="form-group">
+          <label>Current Password</label>
+          <input type="password" formControlName="oldPassword" placeholder="Enter current password">
+        </div>
+        <div class="form-group">
+          <label>New Password</label>
+          <input type="password" formControlName="newPassword" placeholder="Enter new password (min. 6 chars)">
+        </div>
+        <div class="form-group">
+          <label>Confirm New Password</label>
+          <input type="password" formControlName="confirmPassword" placeholder="Re-enter new password">
+          <div class="error-text" *ngIf="pwdForm.errors?.['mismatch'] && pwdForm.get('confirmPassword')?.touched">Passwords do not match</div>
+        </div>
+
+        <div class="form-notifications">
+          <div class="success-banner" *ngIf="pwdSuccess">{{pwdSuccess}}</div>
+          <div class="error-banner" *ngIf="pwdError">{{pwdError}}</div>
+        </div>
+
+        <button type="submit" class="btn-primary pwd-btn" [disabled]="pwdForm.invalid || pwdLoading">
+          <span *ngIf="!pwdLoading">Update Password</span>
+          <span *ngIf="pwdLoading">Updating...</span>
+        </button>
+      </form>
+    </div>
+  </div>
+</div>
