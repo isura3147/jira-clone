@@ -1,0 +1,246 @@
+<div class="board-header">
+  <div class="project-selector" *ngIf="projects.length > 0">
+    <div class="project-icon">
+      <!-- Simple project icon -->
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>
+    </div>
+    <ng-container *ngIf="!isEditingProject">
+      <select [ngModel]="currentProject" (ngModelChange)="selectProject($event)">
+        <option *ngFor="let p of projects" [ngValue]="p">{{p.name}}</option>
+      </select>
+      <button class="edit-project-btn" (click)="startEditProjectName()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+      </button>
+    </ng-container>
+    
+    <div *ngIf="isEditingProject" class="edit-project-form">
+      <input type="text" [(ngModel)]="editedProjectName" (keyup.enter)="saveProjectName()" (keyup.escape)="isEditingProject = false" autoFocus>
+      <button class="save-btn" (click)="saveProjectName()">Save</button>
+      <button class="cancel-btn" (click)="isEditingProject = false">Cancel</button>
+    </div>
+  </div>
+  
+  <button class="btn-primary create-btn" (click)="openModal()">
+    Create Issue
+  </button>
+</div>
+
+<div class="board-container">
+  <div class="board-column" 
+       *ngFor="let status of columns"
+       (dragover)="onDragOver($event)"
+       (drop)="onDrop(status, $event)">
+    <div class="column-header">
+      <div class="column-header-title">
+        <h3>{{ status | uppercase }}</h3>
+        <span class="issue-count">{{ getIssuesByStatus(status).length }}</span>
+      </div>
+    </div>
+
+    <div class="column-body">
+      <div class="issue-card" 
+           *ngFor="let issue of getIssuesByStatus(status)"
+           draggable="true"
+           (dragstart)="onDragStart(issue, $event)"
+           (click)="viewIssue(issue)">
+        <!-- Thin left border denoting type -->
+        <div class="card-type-bar" [ngClass]="issue.type.toLowerCase()"></div>
+        
+        <div class="card-content">
+          <div class="card-header">
+            <span class="card-type-icon" [ngClass]="issue.type.toLowerCase()">
+              <svg *ngIf="issue.type === 'Task'" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 11 12 14 22 4"></polyline><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path></svg>
+              <svg *ngIf="issue.type === 'Bug'" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+              <svg *ngIf="issue.type === 'Story'" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+            </span>
+            <span class="card-priority" [ngClass]="issue.priority.toLowerCase()">
+              <svg *ngIf="issue.priority === 'High'" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 15 12 9 6 15"></polyline></svg>
+              <svg *ngIf="issue.priority === 'Low'" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+              <svg *ngIf="issue.priority === 'Medium'" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+            </span>
+          </div>
+
+          <h4 class="card-title">{{ issue.title }}</h4>
+          
+          <div class="card-footer" *ngIf="issue.assignee">
+            <div class="assignee" [title]="'Assigned to ' + issue.assignee.username">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal -->
+<div class="modal-backdrop" *ngIf="showIssueModal" (click)="closeModal()">
+  <div class="modal-content" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h3>Create New Issue</h3>
+      <button class="close-btn" (click)="closeModal()">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+      </button>
+    </div>
+    
+    <div class="modal-body">
+      <form [formGroup]="issueForm" (ngSubmit)="createIssue()">
+        <div class="form-group">
+          <label>Summary</label>
+          <input type="text" formControlName="title" placeholder="What needs to be done?">
+        </div>
+        
+        <div class="form-group">
+          <label>Description</label>
+          <textarea formControlName="description" rows="4" placeholder="Add more details..."></textarea>
+        </div>
+        
+        <div class="form-row">
+          <div class="form-group">
+            <label>Issue Type</label>
+            <select formControlName="type">
+              <option value="Task">Task</option>
+              <option value="Bug">Bug</option>
+              <option value="Story">Story</option>
+            </select>
+          </div>
+          
+          <div class="form-group">
+            <label>Priority</label>
+            <select formControlName="priority">
+              <option value="Low">Low</option>
+              <option value="Medium">Medium</option>
+              <option value="High">High</option>
+            </select>
+          </div>
+        </div>
+        
+        <div class="modal-actions">
+          <button type="button" class="btn-cancel" (click)="closeModal()">Cancel</button>
+          <button type="submit" class="btn-primary" [disabled]="issueForm.invalid">Create Issue</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- View/Edit Side Panel -->
+<div class="sidepanel-backdrop" *ngIf="viewingIssue" (click)="closeViewPanel()">
+  <div class="sidepanel" (click)="$event.stopPropagation()">
+    <div class="sidepanel-header">
+      <div class="sidepanel-title-row">
+        <span class="card-type-icon" [ngClass]="viewingIssue.type.toLowerCase()">
+          <svg *ngIf="viewingIssue.type === 'Task'" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 11 12 14 22 4"></polyline><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path></svg>
+          <svg *ngIf="viewingIssue.type === 'Bug'" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+          <svg *ngIf="viewingIssue.type === 'Story'" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+        </span>
+        <span class="type-label">{{viewingIssue.type}}</span>
+      </div>
+      <div class="sidepanel-actions">
+        <ng-container *ngIf="!isEditingSidepanel">
+          <button class="icon-btn edit-btn" (click)="startIssueEdit()" title="Edit Issue">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+          </button>
+          <button class="icon-btn delete-btn" (click)="deleteIssue()" title="Delete Issue">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+          </button>
+        </ng-container>
+        <ng-container *ngIf="isEditingSidepanel">
+          <button class="btn-primary mini-btn" (click)="saveIssueEdit()">Save</button>
+          <button class="btn-cancel mini-btn" (click)="cancelIssueEdit()">Cancel</button>
+        </ng-container>
+        <div class="divider"></div>
+        <button class="close-btn" (click)="closeViewPanel()" title="Close">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+        </button>
+      </div>
+    </div>
+    
+    <div class="sidepanel-content">
+      <!-- Read Only Mode -->
+      <ng-container *ngIf="!isEditingSidepanel">
+        <h2 class="issue-main-title">{{viewingIssue.title}}</h2>
+        
+        <div class="issue-meta-grid">
+          <div class="meta-item">
+            <label>Status</label>
+            <div class="meta-value status-badge">{{viewingIssue.status}}</div>
+          </div>
+          <div class="meta-item">
+            <label>Priority</label>
+            <div class="meta-value priority-badge" [ngClass]="viewingIssue.priority.toLowerCase()">{{viewingIssue.priority}}</div>
+          </div>
+          <div class="meta-item">
+            <label>Assignee</label>
+            <div class="meta-value assignee-display" *ngIf="viewingIssue.assignee">
+              <div class="avatar-icon">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+              </div>
+              <span>{{viewingIssue.assignee.username}}</span>
+            </div>
+            <div class="meta-value unassigned" *ngIf="!viewingIssue.assignee">Unassigned</div>
+          </div>
+        </div>
+        
+        <div class="issue-description-box">
+          <label>Description</label>
+          <p class="desc-text" *ngIf="viewingIssue.description">{{viewingIssue.description}}</p>
+          <p class="desc-empty" *ngIf="!viewingIssue.description">No description provided...</p>
+        </div>
+      </ng-container>
+
+      <!-- Edit Mode -->
+      <ng-container *ngIf="isEditingSidepanel && editingIssueData">
+        <input type="text" class="edit-title-input" [(ngModel)]="editingIssueData.title" placeholder="Issue Title">
+        
+        <div class="issue-meta-grid">
+          <div class="meta-item">
+            <label>Status</label>
+            <select class="meta-select" [(ngModel)]="editingIssueData.status">
+              <option *ngFor="let col of columns" [value]="col">{{col}}</option>
+            </select>
+          </div>
+          <div class="meta-item">
+            <label>Priority</label>
+            <select class="meta-select" [(ngModel)]="editingIssueData.priority">
+              <option value="Low">Low</option>
+              <option value="Medium">Medium</option>
+              <option value="High">High</option>
+            </select>
+          </div>
+          <div class="meta-item">
+            <label>Assignee</label>
+            <div class="meta-value unassigned">Change unassigned not supported (Admin only)</div>
+          </div>
+        </div>
+        
+        <div class="issue-description-box">
+          <label>Description</label>
+          <textarea class="edit-desc-input" [(ngModel)]="editingIssueData.description" rows="8" placeholder="Add a description..."></textarea>
+        </div>
+      </ng-container>
+    </div>
+  </div>
+</div>
+
+<!-- Deletion Confirmation Modal -->
+<div class="modal-backdrop" *ngIf="showDeleteConfirmModal" (click)="cancelDeleteIssue()" style="z-index: 2000;">
+  <div class="modal-content confirm-modal" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h3>Delete Issue</h3>
+      <button class="close-btn" (click)="cancelDeleteIssue()">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+      </button>
+    </div>
+    <div class="modal-body">
+      <p style="margin-bottom: 1.5rem; line-height: 1.6; color: var(--text-main);">
+        Are you sure you want to permanently delete <strong>"{{viewingIssue?.title}}"</strong>?<br>
+        <span style="color: var(--text-muted); font-size: 0.9rem;">This action cannot be undone.</span>
+      </p>
+      <div class="modal-actions">
+        <button type="button" class="btn-cancel" (click)="cancelDeleteIssue()">Cancel</button>
+        <button type="button" class="btn-danger" (click)="confirmDeleteIssue()">Delete Permanently</button>
+      </div>
+    </div>
+  </div>
+</div>
