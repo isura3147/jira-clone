@@ -1,0 +1,34 @@
+<div class="auth-container">
+  <div class="auth-card">
+    <h2 class="auth-title">Log in to your account</h2>
+    
+    <div *ngIf="error" class="error-banner">
+      {{error}}
+    </div>
+
+    <form [formGroup]="loginForm" (ngSubmit)="onSubmit()">
+      <div class="form-group">
+        <label for="username">Username</label>
+        <input type="text" id="username" formControlName="username" 
+               [class.input-error]="hasError('username')"
+               class="form-control" autocomplete="username">
+      </div>
+      
+      <div class="form-group">
+        <label for="password">Password</label>
+        <input type="password" id="password" formControlName="password" 
+               [class.input-error]="hasError('password')"
+               class="form-control" autocomplete="current-password">
+      </div>
+
+      <button [disabled]="loading" class="btn-primary" style="width: 100%; margin-top: 0.5rem;">
+        <span *ngIf="loading">Signing in...</span>
+        <span *ngIf="!loading">Sign In</span>
+      </button>
+    </form>
+
+    <div class="auth-links">
+      Don't have an account? <a routerLink="/register">Register here</a>
+    </div>
+  </div>
+</div>

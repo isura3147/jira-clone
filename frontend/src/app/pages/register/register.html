@@ -1,0 +1,38 @@
+<div class="auth-container">
+  <div class="auth-card">
+    <h2 class="auth-title">Create an account</h2>
+    
+    <div *ngIf="error" class="error-banner">
+      {{error}}
+    </div>
+
+    <form [formGroup]="registerForm" (ngSubmit)="onSubmit()">
+      <div class="form-group">
+        <label for="username">Username</label>
+        <input type="text" id="username" formControlName="username" 
+               [class.input-error]="hasError('username')" class="form-control">
+      </div>
+      
+      <div class="form-group">
+        <label for="email">Email address</label>
+        <input type="email" id="email" formControlName="email" 
+               [class.input-error]="hasError('email')" class="form-control">
+      </div>
+
+      <div class="form-group">
+        <label for="password">Password</label>
+        <input type="password" id="password" formControlName="password" 
+               [class.input-error]="hasError('password')" class="form-control">
+      </div>
+
+      <button [disabled]="loading" class="btn-primary" style="width: 100%; margin-top: 0.5rem;">
+        <span *ngIf="loading">Creating account...</span>
+        <span *ngIf="!loading">Register</span>
+      </button>
+    </form>
+
+    <div class="auth-links">
+      Already have an account? <a routerLink="/login">Sign in</a>
+    </div>
+  </div>
+</div>
