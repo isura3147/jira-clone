@@ -56,7 +56,6 @@ export class BoardComponent implements OnInit {
       if (projs.length > 0) {
         this.selectProject(projs[0]);
       } else {
-        // Create demo project if none exists
         this.projectService.createProject({ name: 'Demo Project', description: 'Auto-generated demo' })
           .subscribe(p => {
              this.projects = [...this.projects, p];
@@ -92,7 +91,6 @@ export class BoardComponent implements OnInit {
       const updated = { ...this.currentProject, name: newName };
       this.projectService.updateProject(updated.id!, updated).subscribe(() => {
         this.currentProject!.name = newName;
-        // Trigger select redraw
         this.projects = [...this.projects];
         this.isEditingProject = false;
         this.cdr.markForCheck();
@@ -154,7 +152,6 @@ export class BoardComponent implements OnInit {
     if (!this.editingIssueData || !this.editingIssueData.title.trim()) return;
     
     this.projectService.updateIssue(this.editingIssueData.id!, this.editingIssueData).subscribe(() => {
-      // Create new references
       const updatedData = { ...this.editingIssueData! };
       this.issues = this.issues.map(i => i.id === updatedData.id ? updatedData : i);
       this.viewingIssue = updatedData;
@@ -209,7 +206,6 @@ export class BoardComponent implements OnInit {
     this.draggingIssue = issue;
     if (event.dataTransfer) {
       event.dataTransfer.effectAllowed = 'move';
-      // Need this for Firefox
       event.dataTransfer.setData('text/plain', issue.id?.toString() || '');
     }
   }
@@ -227,13 +223,11 @@ export class BoardComponent implements OnInit {
       const issueId = this.draggingIssue.id!;
       const oldStatus = this.draggingIssue.status;
       
-      // Immutable update to trigger CD
       this.issues = this.issues.map(i => i.id === issueId ? { ...i, status } : i);
       const updatedIssue = this.issues.find(i => i.id === issueId)!;
 
       this.projectService.updateIssue(issueId, updatedIssue).subscribe({
         error: () => {
-          // Revert if error
           this.issues = this.issues.map(i => i.id === issueId ? { ...i, status: oldStatus } : i);
         }
       });

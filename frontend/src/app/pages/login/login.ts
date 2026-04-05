@@ -33,7 +33,6 @@ export class LoginComponent {
       password: ['', Validators.required]
     });
     
-    // Clear error automatically when user starts typing again
     this.loginForm.valueChanges.subscribe(() => {
       if (this.error) {
         this.error = '';
