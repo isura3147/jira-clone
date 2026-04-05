@@ -37,8 +37,6 @@ namespace JiraClone.Backend.Controllers
             {
                 Username = request.Username,
                 Email = request.Email,
-                // In production, USE A SECURE PASSWORD HASHER (e.g. BCrypt)
-                // For simplicity here, we're mimicking it or storing plain. (Ideally HashPassword)
                 PasswordHash = BCrypt.Net.BCrypt.HashPassword(request.Password),
                 AvatarUrl = $"https://api.dicebear.com/7.x/avataaars/svg?seed={request.Username}"
             };
